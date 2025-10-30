@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1a2a6c">
+    <title>Virtual Rubik's Cube - Solve Without Buying</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        
+        :root {
+            --primary: #1a2a6c;
+            --secondary: #b21f1f;
+            --accent: #fdbb2d;
+            --text: white;
+            --card-bg: rgba(0, 0, 0, 0.3);
+            --button-bg: rgba(255, 255, 255, 0.2);
+            --button-hover: rgba(255, 255, 255, 0.3);
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--primary), var(--secondary), var(--accent));
+            color: var(--text);
+            min-height: 100vh;
+            min-height: 100dvh;
+            padding: 10px;
+            overflow-x: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+        
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 10px;
+            padding: 0 10px;
+        }
+        
+        h1 {
+            font-size: clamp(1.8rem, 5vw, 2.5rem);
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .subtitle {
+            font-size: clamp(0.9rem, 3vw, 1.2rem);
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+        }
+        
+        .cube-container {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .cube-type-selector {
+            margin-bottom: 10px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .cube-type-btn {
+            padding: 8px 12px;
+            border-radius: 8px;
+            background: var(--button-bg);
+            color: var(--text);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            min-width: 50px;
+        }
+        
+        .cube-type-btn.active {
+            background: var(--button-hover);
+            font-weight: bold;
+        }
+        
+        .cube-display {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin: 15px 0;
+            width: 100%;
+            max-width: 320px;
+        }
+        
+        .cube-face {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 2px;
+            width: 100%;
+            aspect-ratio: 1;
+            background: #111;
+            padding: 4px;
+            border-radius: 4px;
+        }
+        
+        .sticker {
+            border-radius: 2px;
+            box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.3);
+        }
+        
+        .white { background-color: #FFFFFF; }
+        .yellow { background-color: #FFD500; }
+        .green { background-color: #009B48; }
+        .blue { background-color: #0045AD; }
+        .red { background-color: #B90000; }
+        .orange { background-color: #FF5900; }
+        
+        .timer-container {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        
+        .timer {
+            font-size: clamp(2rem, 8vw, 3rem);
+            font-weight: bold;
+            margin: 15px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-top: 15px;
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        button {
+            background: var(--button-bg);
+            border: none;
+            border-radius: 8px;
+            color: var(--text);
+            padding: 12px 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: bold;
+            font-size: 0.9rem;
+            min-height: 44px;
+        }
+        
+        button:active {
+            background: var(--button-hover);
+            transform: scale(0.98);
+        }
+        
+        .mobile-controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 15px;
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        .mobile-control-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--button-bg);
+            border: none;
+            border-radius: 8px;
+            color: var(--text);
+            padding: 12px 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.8rem;
+            min-height: 60px;
+        }
+        
+        .mobile-control-btn .arrow {
+            font-size: 1.2rem;
+            margin-bottom: 4px;
+        }
+        
+        .instructions {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 10px;
+            width: 100%;
+        }
+        
+        .instructions h2 {
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+        
+        .key-shortcuts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .shortcut {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+        
+        .status-message {
+            margin-top: 8px;
+            padding: 6px;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
+            min-height: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .saved {
+            background: rgba(0, 255, 0, 0.2);
+        }
+        
+        .move-history {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 12px;
+            margin-top: 10px;
+            width: 100%;
+        }
+        
+        .move-history h3 {
+            margin-bottom: 8px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+        
+        .moves-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            max-height: 80px;
+            overflow-y: auto;
+            padding: 4px;
+            font-size: 0.85rem;
+        }
+        
+        .move {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        
+        .countdown-section {
+            margin-top: 15px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .countdown-section h3 {
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+        
+        .countdown-input {
+            padding: 8px;
+            border-radius: 6px;
+            border: none;
+            margin: 5px 0;
+            width: 80px;
+            text-align: center;
+            font-size: 1rem;
+        }
+        
+        /* Performance optimizations */
+        .cube-face, .sticker {
+            will-change: transform;
+            transform: translateZ(0);
+        }
+        
+        /* Mobile-specific adjustments */
+        @media (max-width: 480px) {
+            .cube-display {
+                grid-template-columns: 1fr;
+                max-width: 250px;
+            }
+            
+            .controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .mobile-controls {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (min-width: 768px) {
+            .main-content {
+                flex-direction: row;
+                align-items: flex-start;
+            }
+            
+            .cube-container, .timer-container {
+                flex: 1;
+            }
+        }
+        
+        /* Orientation warning for mobile */
+        .orientation-warning {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .orientation-warning.show {
+            display: flex;
+        }
+        
+        /* Loading indicator */
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--primary);
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.3s;
+        }
+        
+        .loading.hide {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 15px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Swipe gestures area */
+        .swipe-area {
+            position: relative;
+            width: 100%;
+            height: 120px;
+            margin: 10px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        .swipe-directions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 5px;
+            width: 100px;
+            height: 100px;
+        }
+        
+        .swipe-direction {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        
+        .swipe-center {
+            grid-column: 2;
+            grid-row: 2;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Loading Virtual Rubik's Cube...</p>
+    </div>
+
+    <div class="orientation-warning" id="orientationWarning">
+        <h2>Please Rotate Your Device</h2>
+        <p>For the best experience, please use your device in landscape mode.</p>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>Virtual Rubik's Cube</h1>
+            <p class="subtitle">Solve the cube without buying one - 2025 and beyond!</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="cube-container">
+                <div class="cube-type-selector">
+                    <button class="cube-type-btn active" data-size="3">3x3</button>
+                    <button class="cube-type-btn" data-size="2">2x2</button>
+                    <button class="cube-type-btn" data-size="4">4x4</button>
+                </div>
+                
+                <div class="cube-display" id="cube-display">
+                    <!-- Cube faces will be generated by JavaScript -->
+                </div>
+                
+                <div class="swipe-area" id="swipeArea">
+                    <div class="swipe-directions">
+                        <div class="swipe-direction" style="grid-column: 2; grid-row: 1;">U</div>
+                        <div class="swipe-direction" style="grid-column: 1; grid-row: 2;">L</div>
+                        <div class="swipe-direction swipe-center">Swipe</div>
+                        <div class="swipe-direction" style="grid-column: 3; grid-row: 2;">R</div>
+                        <div class="swipe-direction" style="grid-column: 2; grid-row: 3;">D</div>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <button id="scramble-btn">Scramble</button>
+                    <button id="reset-btn">Reset</button>
+                    <button id="solve-btn">Solve</button>
+                    <button id="undo-btn">Undo</button>
+                </div>
+                
+                <div class="mobile-controls">
+                    <button class="mobile-control-btn" data-move="U">
+                        <div class="arrow">↑</div>
+                        <div>Up (U)</div>
+                    </button>
+                    <button class="mobile-control-btn" data-move="F">
+                        <div class="arrow">↶</div>
+                        <div>Front (F)</div>
+                    </button>
+                    <button class="mobile-control-btn" data-move="R">
+                        <div class="arrow">↷</div>
+                        <div>Right (R)</div>
+                    </button>
+                    <button class="mobile-control-btn" data-move="L">
+                        <div class="arrow">↶</div>
+                        <div>Left (L)</div>
+                    </button>
+                    <button class="mobile-control-btn" data-move="D">
+                        <div class="arrow">↓</div>
+                        <div>Down (D)</div>
+                    </button>
+                    <button class="mobile-control-btn" data-move="B">
+                        <div class="arrow">↷</div>
+                        <div>Back (B)</div>
+                    </button>
+                </div>
+                
+                <div class="status-message" id="status-message"></div>
+            </div>
+            
+            <div class="timer-container">
+                <h2>Timer</h2>
+                <div class="timer" id="timer">00:00.00</div>
+                <div class="controls">
+                    <button id="start-stop-btn">Start (Enter)</button>
+                    <button id="reset-timer-btn">Reset Timer</button>
+                </div>
+                
+                <div class="countdown-section">
+                    <h3>Countdown Timer</h3>
+                    <input type="number" id="countdown-input" class="countdown-input" placeholder="Sec" min="1" max="3600">
+                    <button id="start-countdown-btn">Start Countdown</button>
+                    <div id="countdown-display" style="font-size: 1.2rem; margin-top: 8px;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="move-history">
+            <h3>Move History</h3>
+            <div class="moves-list" id="moves-list">
+                <!-- Move history will be displayed here -->
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h2>How to Use</h2>
+            <p>Press Enter to start/stop the timer. Use keyboard shortcuts or touch controls to rotate the cube.</p>
+            
+            <div class="key-shortcuts">
+                <div class="shortcut">
+                    <span>Front Face Clockwise</span>
+                    <span>F</span>
+                </div>
+                <div class="shortcut">
+                    <span>Front Face Counter-Clockwise</span>
+                    <span>Shift + F</span>
+                </div>
+                <div class="shortcut">
+                    <span>Right Face Clockwise</span>
+                    <span>R</span>
+                </div>
+                <div class="shortcut">
+                    <span>Right Face Counter-Clockwise</span>
+                    <span>Shift + R</span>
+                </div>
+                <div class="shortcut">
+                    <span>Up Face Clockwise</span>
+                    <span>U</span>
+                </div>
+                <div class="shortcut">
+                    <span>Up Face Counter-Clockwise</span>
+                    <span>Shift + U</span>
+                </div>
+                <div class="shortcut">
+                    <span>Left Face Clockwise</span>
+                    <span>L</span>
+                </div>
+                <div class="shortcut">
+                    <span>Left Face Counter-Clockwise</span>
+                    <span>Shift + L</span>
+                </div>
+                <div class="shortcut">
+                    <span>Down Face Clockwise</span>
+                    <span>D</span>
+                </div>
+                <div class="shortcut">
+                    <span>Down Face Counter-Clockwise</span>
+                    <span>Shift + D</span>
+                </div>
+                <div class="shortcut">
+                    <span>Back Face Clockwise</span>
+                    <span>B</span>
+                </div>
+                <div class="shortcut">
+                    <span>Back Face Counter-Clockwise</span>
+                    <span>Shift + B</span>
+                </div>
+            </div>
+            <p style="margin-top: 10px; text-align: center; font-size: 0.9rem;">
+                <strong>Auto-save:</strong> Your cube state is automatically saved every 3 seconds!
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Performance optimizations
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => console.log('SW registered'))
+                    .catch(err => console.log('SW registration failed'));
+            });
+        }
+
+        // Detect mobile device
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        // Cube state and functionality
+        let cubeState = {
+            size: 3,
+            faces: {},
+            moveHistory: [],
+            lastSave: Date.now()
+        };
+
+        // Timer functionality
+        let timerInterval;
+        let startTime;
+        let elapsedTime = 0;
+        let isRunning = false;
+        let countdownInterval;
+        
+        // DOM elements
+        const timerDisplay = document.getElementById('timer');
+        const startStopBtn = document.getElementById('start-stop-btn');
+        const resetTimerBtn = document.getElementById('reset-timer-btn');
+        const countdownInput = document.getElementById('countdown-input');
+        const startCountdownBtn = document.getElementById('start-countdown-btn');
+        const countdownDisplay = document.getElementById('countdown-display');
+        const cubeDisplay = document.getElementById('cube-display');
+        const statusMessage = document.getElementById('status-message');
+        const movesList = document.getElementById('moves-list');
+        const cubeTypeButtons = document.querySelectorAll('.cube-type-btn');
+        const loadingElement = document.getElementById('loading');
+        const orientationWarning = document.getElementById('orientationWarning');
+        const swipeArea = document.getElementById('swipeArea');
+        
+        // Initialize the cube
+        function initCube(size) {
+            cubeState.size = size;
+            cubeState.faces = {};
+            cubeState.moveHistory = [];
+            
+            const faces = ['front', 'back', 'right', 'left', 'up', 'down'];
+            const colors = {
+                'front': 'green',
+                'back': 'blue',
+                'right': 'red',
+                'left': 'orange',
+                'up': 'white',
+                'down': 'yellow'
+            };
+            
+            faces.forEach(face => {
+                cubeState.faces[face] = [];
+                for (let i = 0; i < size * size; i++) {
+                    cubeState.faces[face].push(colors[face]);
+                }
+            });
+            
+            renderCube();
+            updateMoveHistory();
+            saveState();
+        }
+        
+        // Render the cube in the DOM
+        function renderCube() {
+            cubeDisplay.innerHTML = '';
+            
+            const faces = ['up', 'front', 'right', 'back', 'left', 'down'];
+            
+            faces.forEach(face => {
+                const faceElement = document.createElement('div');
+                faceElement.className = 'cube-face';
+                faceElement.id = `face-${face}`;
+                
+                const title = document.createElement('div');
+                title.style.gridColumn = '1 / -1';
+                title.style.textAlign = 'center';
+                title.style.fontSize = '0.7rem';
+                title.style.marginBottom = '2px';
+                title.textContent = face.toUpperCase();
+                faceElement.appendChild(title);
+                
+                for (let i = 0; i < cubeState.size * cubeState.size; i++) {
+                    const sticker = document.createElement('div');
+                    sticker.className = `sticker ${cubeState.faces[face][i]}`;
+                    faceElement.appendChild(sticker);
+                }
+                
+                cubeDisplay.appendChild(faceElement);
+            });
+        }
+        
+        // Perform a cube move
+        function performMove(face, direction) {
+            const moveNotation = direction === 'clockwise' ? face.toUpperCase() : `${face.toUpperCase()}'`;
+            cubeState.moveHistory.push(moveNotation);
+            
+            // In a real implementation, this would actually rotate the cube faces
+            // For this demo, we'll just simulate by changing some colors randomly
+            simulateMove(face, direction);
+            
+            renderCube();
+            updateMoveHistory();
+            setDirtyFlag();
+        }
+        
+        // Simulate a move by changing some colors (for demo purposes)
+        function simulateMove(face, direction) {
+            const affectedFaces = [face];
+            
+            // Determine which faces are affected by this move
+            if (face === 'front') {
+                affectedFaces.push('up', 'right', 'down', 'left');
+            } else if (face === 'right') {
+                affectedFaces.push('up', 'back', 'down', 'front');
+            }
+            // Add more cases for other faces in a real implementation
+            
+            // Randomly change some stickers to simulate the move
+            affectedFaces.forEach(faceName => {
+                const face = cubeState.faces[faceName];
+                const changeCount = Math.floor(face.length * 0.3); // Change 30% of stickers
+                
+                for (let i = 0; i < changeCount; i++) {
+                    const randomIndex = Math.floor(Math.random() * face.length);
+                    const colors = ['white', 'yellow', 'green', 'blue', 'red', 'orange'];
+                    const currentColor = face[randomIndex];
+                    let newColor;
+                    
+                    do {
+                        newColor = colors[Math.floor(Math.random() * colors.length)];
+                    } while (newColor === currentColor);
+                    
+                    face[randomIndex] = newColor;
+                }
+            });
+        }
+        
+        // Update the move history display
+        function updateMoveHistory() {
+            movesList.innerHTML = '';
+            
+            cubeState.moveHistory.forEach((move, index) => {
+                const moveElement = document.createElement('div');
+                moveElement.className = 'move';
+                moveElement.textContent = move;
+                movesList.appendChild(moveElement);
+            });
+            
+            // Scroll to the bottom
+            movesList.scrollTop = movesList.scrollHeight;
+        }
+        
+        // Set dirty flag to indicate state has changed
+        function setDirtyFlag() {
+            cubeState.lastSave = Date.now() - 2500; // Force save on next check
+        }
+        
+        // Save cube state to localStorage
+        function saveState() {
+            try {
+                localStorage.setItem('rubiksCubeState', JSON.stringify(cubeState));
+                showStatus('Progress saved!', 'saved');
+            } catch (e) {
+                console.error('Failed to save cube state:', e);
+                showStatus('Failed to save progress', 'error');
+            }
+        }
+        
+        // Load cube state from localStorage
+        function loadState() {
+            try {
+                const savedState = localStorage.getItem('rubiksCubeState');
+                if (savedState) {
+                    const parsedState = JSON.parse(savedState);
+                    cubeState = parsedState;
+                    renderCube();
+                    updateMoveHistory();
+                    showStatus('Previous progress loaded!', 'saved');
+                    return true;
+                }
+            } catch (e) {
+                console.error('Failed to load cube state:', e);
+            }
+            return false;
+        }
+        
+        // Show status message
+        function showStatus(message, type) {
+            statusMessage.textContent = message;
+            statusMessage.className = 'status-message';
+            if (type) {
+                statusMessage.classList.add(type);
+            }
+            
+            setTimeout(() => {
+                statusMessage.textContent = '';
+                statusMessage.className = 'status-message';
+            }, 2000);
+        }
+        
+        // Auto-save check
+        function checkAutoSave() {
+            const now = Date.now();
+            if (now - cubeState.lastSave > 3000) { // 3 seconds
+                saveState();
+                cubeState.lastSave = now;
+            }
+        }
+        
+        // Timer functions
+        function formatTime(ms) {
+            let minutes = Math.floor(ms / 60000);
+            let seconds = Math.floor((ms % 60000) / 1000);
+            let hundredths = Math.floor((ms % 1000) / 10);
+            
+            return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${hundredths.toString().padStart(2, '0')}`;
+        }
+        
+        function startTimer() {
+            if (!isRunning) {
+                startTime = Date.now() - elapsedTime;
+                timerInterval = setInterval(() => {
+                    elapsedTime = Date.now() - startTime;
+                    timerDisplay.textContent = formatTime(elapsedTime);
+                    checkAutoSave(); // Check for auto-save while timer is running
+                }, 10);
+                isRunning = true;
+                startStopBtn.textContent = 'Stop (Enter)';
+            }
+        }
+        
+        function stopTimer() {
+            if (isRunning) {
+                clearInterval(timerInterval);
+                isRunning = false;
+                startStopBtn.textContent = 'Start (Enter)';
+                saveState(); // Save when timer stops
+            }
+        }
+        
+        function resetTimer() {
+            clearInterval(timerInterval);
+            elapsedTime = 0;
+            timerDisplay.textContent = '00:00.00';
+            isRunning = false;
+            startStopBtn.textContent = 'Start (Enter)';
+        }
+        
+        function startCountdown() {
+            const seconds = parseInt(countdownInput.value);
+            if (isNaN(seconds) || seconds <= 0) return;
+            
+            let remaining = seconds * 1000;
+            countdownDisplay.textContent = formatTime(remaining);
+            
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+            
+            countdownInterval = setInterval(() => {
+                remaining -= 10;
+                countdownDisplay.textContent = formatTime(remaining);
+                
+                if (remaining <= 0) {
+                    clearInterval(countdownInterval);
+                    countdownDisplay.textContent = "Time's up!";
+                    // Play a sound or show an alert here
+                }
+            }, 10);
+        }
+        
+        // Mobile swipe gesture handling
+        function setupSwipeGestures() {
+            if (!isMobile) return;
+            
+            let startX, startY;
+            
+            swipeArea.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+                e.preventDefault();
+            }, { passive: false });
+            
+            swipeArea.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+            }, { passive: false });
+            
+            swipeArea.addEventListener('touchend', (e) => {
+                if (!startX || !startY) return;
+                
+                const endX = e.changedTouches[0].clientX;
+                const endY = e.changedTouches[0].clientY;
+                
+                const diffX = endX - startX;
+                const diffY = endY - startY;
+                
+                // Minimum swipe distance
+                if (Math.abs(diffX) < 30 && Math.abs(diffY) < 30) return;
+                
+                // Determine primary direction
+                if (Math.abs(diffX) > Math.abs(diffY)) {
+                    // Horizontal swipe
+                    if (diffX > 0) {
+                        performMove('r', 'clockwise');
+                    } else {
+                        performMove('l', 'clockwise');
+                    }
+                } else {
+                    // Vertical swipe
+                    if (diffY > 0) {
+                        performMove('d', 'clockwise');
+                    } else {
+                        performMove('u', 'clockwise');
+                    }
+                }
+                
+                startX = null;
+                startY = null;
+            });
+        }
+        
+        // Mobile orientation handling
+        function checkOrientation() {
+            if (!isMobile) return;
+            
+            const isPortrait = window.innerHeight > window.innerWidth;
+            orientationWarning.classList.toggle('show', isPortrait);
+        }
+        
+        // Event listeners
+        startStopBtn.addEventListener('click', () => {
+            if (isRunning) {
+                stopTimer();
+            } else {
+                startTimer();
+            }
+        });
+        
+        resetTimerBtn.addEventListener('click', resetTimer);
+        startCountdownBtn.addEventListener('click', startCountdown);
+        
+        // Cube type selection
+        cubeTypeButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                cubeTypeButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                initCube(parseInt(button.dataset.size));
+            });
+        });
+        
+        // Control buttons
+        document.getElementById('scramble-btn').addEventListener('click', () => {
+            // Add multiple random moves to scramble
+            const moves = ['F', 'R', 'U', 'L', 'D', 'B'];
+            const directions = ['clockwise', 'counterclockwise'];
+            
+            for (let i = 0; i < 20; i++) {
+                const randomMove = moves[Math.floor(Math.random() * moves.length)];
+                const randomDirection = directions[Math.floor(Math.random() * directions.length)];
+                performMove(randomMove.toLowerCase(), randomDirection);
+            }
+            
+            showStatus('Cube scrambled!', 'saved');
+        });
+        
+        document.getElementById('reset-btn').addEventListener('click', () => {
+            initCube(cubeState.size);
+            showStatus('Cube reset!', 'saved');
+        });
+        
+        document.getElementById('solve-btn').addEventListener('click', () => {
+            // In a real implementation, this would solve the cube
+            showStatus('Solving cube...', 'saved');
+            setTimeout(() => {
+                initCube(cubeState.size);
+                showStatus('Cube solved!', 'saved');
+            }, 1500);
+        });
+        
+        document.getElementById('undo-btn').addEventListener('click', () => {
+            if (cubeState.moveHistory.length > 0) {
+                cubeState.moveHistory.pop();
+                // In a real implementation, we would actually reverse the move
+                initCube(cubeState.size); // For demo, just reset and replay moves without the last one
+                cubeState.moveHistory.forEach(move => {
+                    const face = move.replace("'", "").toLowerCase();
+                    const direction = move.includes("'") ? 'counterclockwise' : 'clockwise';
+                    performMove(face, direction);
+                });
+                updateMoveHistory();
+                showStatus('Last move undone', 'saved');
+            }
+        });
+        
+        // Mobile control buttons
+        document.querySelectorAll('.mobile-control-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                const move = button.dataset.move;
+                performMove(move.toLowerCase(), 'clockwise');
+            });
+        });
+        
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                if (isRunning) {
+                    stopTimer();
+                } else {
+                    startTimer();
+                }
+            }
+            
+            // Cube rotation controls
+            if (['f', 'r', 'u', 'l', 'd', 'b'].includes(e.key.toLowerCase())) {
+                const face = e.key.toLowerCase();
+                const direction = e.shiftKey ? 'counterclockwise' : 'clockwise';
+                performMove(face, direction);
+            }
+        });
+        
+        // Initialize the application
+        window.addEventListener('load', () => {
+            // Hide loading screen
+            setTimeout(() => {
+                loadingElement.classList.add('hide');
+                setTimeout(() => {
+                    loadingElement.style.display = 'none';
+                }, 300);
+            }, 800);
+            
+            if (!loadState()) {
+                initCube(3);
+            }
+            
+            // Set up mobile features
+            setupSwipeGestures();
+            checkOrientation();
+            window.addEventListener('resize', checkOrientation);
+            
+            // Set up auto-save interval
+            setInterval(checkAutoSave, 1000); // Check every second if we need to save
+            
+            // Prevent context menu on mobile
+            document.addEventListener('contextmenu', (e) => {
+                if (isMobile) e.preventDefault();
+            });
+        });
+
+        // PWA Manifest (simulated in code - in a real app, this would be a separate file)
+        const manifest = {
+            "name": "Virtual Rubik's Cube",
+            "short_name": "RubikCube",
+            "description": "Solve virtual Rubik's cubes without buying one",
+            "start_url": "/",
+            "display": "standalone",
+            "background_color": "#1a2a6c",
+            "theme_color": "#1a2a6c",
+            "orientation": "any",
+            "icons": [
+                {
+                    "src": "icon-192.png",
+                    "sizes": "192x192",
+                    "type": "image/png"
+                },
+                {
+                    "src": "icon-512.png",
+                    "sizes": "512x512",
+                    "type": "image/png"
+                }
+            ]
+        };
+    </script>
+</body>
+</html>
