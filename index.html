@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Kanalına Abone Olun</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #ff0000, #cc0000);
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 600px;
+            padding: 40px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 20px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .youtube-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px 30px;
+            background: #ff0000;
+            color: white;
+            font-size: 1.3rem;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(255, 0, 0, 0.4);
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        
+        .youtube-btn:hover {
+            background: #cc0000;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 0, 0, 0.6);
+        }
+        
+        .youtube-btn:active {
+            transform: translateY(1px);
+        }
+        
+        .youtube-icon {
+            margin-right: 10px;
+            font-size: 1.5rem;
+        }
+        
+        .countdown {
+            font-size: 1.1rem;
+            margin-top: 20px;
+            opacity: 0.8;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>YouTube Kanalıma Abone Olun!</h1>
+        <p>Bu sayfadan <strong>methehan.github.io/3dcube/</strong> sitesine yönlendiriliyorsunuz. Yönlendirme sırasında YouTube kanalıma göz atabilirsiniz!</p>
+        
+        <a href="https://www.youtube.com/@mtechnow" class="youtube-btn" target="_blank">
+            <span class="youtube-icon">▶</span>
+            YouTube Kanalıma Abone Ol
+        </a>
+        
+        <div class="countdown">
+            <span id="countdown-text">5 saniye içinde hedef siteye yönlendirileceksiniz...</span>
+            <div id="countdown">5</div>
+        </div>
+        
+        <p class="footer">@mtechnow - Teknoloji ve yazılım içerikleri</p>
+    </div>
+
+    <script>
+        // Yönlendirme için geri sayım
+        let seconds = 5;
+        const countdownElement = document.getElementById('countdown');
+        const countdownText = document.getElementById('countdown-text');
+        
+        const countdownInterval = setInterval(function() {
+            seconds--;
+            countdownElement.textContent = seconds;
+            
+            if (seconds <= 0) {
+                clearInterval(countdownInterval);
+                countdownText.textContent = "Yönlendiriliyorsunuz...";
+                // Yönlendirme işlemi
+                window.location.href = "https://methehan.github.io/3dcube/";
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
